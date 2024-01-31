@@ -24,7 +24,6 @@ pub enum MyError {
 
 #[program]
 pub mod transfer_hook {
-    use anchor_spl::token_interface::accessor::amount;
 
     use super::*;
 

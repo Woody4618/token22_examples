@@ -14,13 +14,14 @@ import {
   getMintLen,
   createInitializeMintInstruction,
   createInitializeTransferHookInstruction,
-  addExtraAccountsToInstruction,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
   createTransferCheckedInstruction,
   getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID
+  TOKEN_PROGRAM_ID,
+  addExtraAccountMetasForExecute,
+  createTransferCheckedWithTransferHookInstruction
 } from "@solana/spl-token";
 
 describe("transfer-hook", () => {
@@ -61,7 +62,7 @@ describe("transfer-hook", () => {
     [Buffer.from("extra-account-metas"), mint.publicKey.toBuffer()],
     program.programId
   );
-
+  
   const [counterPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("counter")],
     program.programId
@@ -101,6 +102,7 @@ describe("transfer-hook", () => {
       transaction,
       [wallet.payer, mint]
     );
+
     console.log(`Transaction Signature: ${txSig}`);
   });
 
@@ -166,7 +168,7 @@ describe("transfer-hook", () => {
       provider.connection,
       transaction,
       [wallet.payer],
-      { skipPreflight: true }
+      { skipPreflight: true, commitment: "confirmed"}
     );
     console.log("Transaction Signature:", txSig);
   });
@@ -174,41 +176,27 @@ describe("transfer-hook", () => {
   it("Transfer Hook with Extra Account Meta", async () => {
     // 1 tokens
     const amount = 1 * 10 ** decimals;
+    const amountBigInt = BigInt(amount);
 
-    // Standard token transfer instruction
-    const transferInstruction = createTransferCheckedInstruction(
+    let transferInstructionWithHelper = await createTransferCheckedWithTransferHookInstruction( 
+      connection,
       sourceTokenAccount,
       mint.publicKey,
       destinationTokenAccount,
       wallet.publicKey,
-      amount,
+      amountBigInt,
       decimals,
       [],
-      TOKEN_2022_PROGRAM_ID
+      "confirmed",
+      TOKEN_2022_PROGRAM_ID,
     );
 
-    // Manually add all the extra accounts required by the transfer hook instruction
-    // Also include the address of the ExtraAccountMetaList account and our Transfer Hook Program
-    transferInstruction.keys.push(
-      {
-        pubkey: program.programId,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: extraAccountMetaListPDA,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: counterPDA,
-        isSigner: false,
-        isWritable: true,
-      }
-    );
-
+    console.log("Extra accounts meta: " + extraAccountMetaListPDA);
+    console.log("Counter PDa: " + counterPDA);
+    console.log("Transfer Instruction: " + JSON.stringify(transferInstructionWithHelper));
+    
     const transaction = new Transaction().add(
-      transferInstruction
+      transferInstructionWithHelper
     );
 
     const txSig = await sendAndConfirmTransaction(
