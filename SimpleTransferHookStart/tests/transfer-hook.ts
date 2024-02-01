@@ -19,6 +19,7 @@ import {
   createMintToInstruction,
   createTransferCheckedInstruction,
   getAssociatedTokenAddressSync,
+  createTransferCheckedWithTransferHookInstruction,
 } from "@solana/spl-token";
 
 describe("transfer-hook", () => {
@@ -158,7 +159,7 @@ describe("transfer-hook", () => {
       provider.connection,
       transaction,
       [wallet.payer],
-      { skipPreflight: true }
+      { skipPreflight: true, commitment: "confirmed" }
     );
     console.log("Transaction Signature:", txSig);
   });
@@ -166,32 +167,20 @@ describe("transfer-hook", () => {
   it("Transfer Hook with Extra Account Meta", async () => {
     // 1 tokens
     const amount = 1 * 10 ** decimals;
+    const bigIntAmount = BigInt(amount);
 
     // Standard token transfer instruction
-    const transferInstruction = createTransferCheckedInstruction(
+    const transferInstruction = await createTransferCheckedWithTransferHookInstruction(
+      connection,
       sourceTokenAccount,
       mint.publicKey,
       destinationTokenAccount,
       wallet.publicKey,
-      amount,
+      bigIntAmount,
       decimals,
       [],
+      "confirmed",
       TOKEN_2022_PROGRAM_ID
-    );
-
-    // Manually add all the extra accounts required by the transfer hook instruction
-    // Also include the address of the ExtraAccountMetaList account and our Transfer Hook Program
-    transferInstruction.keys.push(
-      {
-        pubkey: program.programId,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: extraAccountMetaListPDA,
-        isSigner: false,
-        isWritable: false,
-      }
     );
 
     const transaction = new Transaction().add(

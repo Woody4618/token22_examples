@@ -7,7 +7,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
 use spl_tlv_account_resolution::{
-    account::ExtraAccountMeta, seeds::Seed, state::ExtraAccountMetaList,
+    state::ExtraAccountMetaList,
 };
 use spl_transfer_hook_interface::instruction::{ExecuteInstruction, TransferHookInstruction};
 
