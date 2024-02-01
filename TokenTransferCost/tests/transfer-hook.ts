@@ -14,11 +14,9 @@ import {
   getMintLen,
   createInitializeMintInstruction,
   createInitializeTransferHookInstruction,
-  addExtraAccountsToInstruction,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
-  createTransferCheckedInstruction,
   getAssociatedTokenAddressSync,
   createApproveInstruction,
   createSyncNativeInstruction,
@@ -280,70 +278,6 @@ describe("transfer-hook", () => {
       TOKEN_2022_PROGRAM_ID
     );
 
-    /*const transferInstruction = createTransferCheckedInstruction(
-      sourceTokenAccount,
-      mint.publicKey,
-      destinationTokenAccount,
-      wallet.publicKey,
-      bigIntAmount,
-      decimals,
-      [],
-      TOKEN_2022_PROGRAM_ID
-    );
-
-    console.log("Created accounts:", JSON.stringify(transferInstruction.keys));
-
-    // Automatic account resolution not working correctly for the WSol PDA
-    // Manually add all the extra accounts required by the transfer hook instruction
-    // Also include the address of the ExtraAccountMetaList account and Transfer Hook Program
-    transferInstruction.keys.push(
-      {
-        pubkey: new PublicKey("So11111111111111111111111111111111111111112"),
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: delegatePDA,
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: delegateWSolTokenAccount,
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: senderWSolTokenAccount,
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: program.programId,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: extraAccountMetaListPDA,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: counterPDA,
-        isSigner: false,
-        isWritable: true,
-      }
-    );*/
-
     console.log("Pushed keys:", JSON.stringify(transferInstruction.keys));
 
     const transaction = new Transaction().add(
@@ -365,68 +299,4 @@ describe("transfer-hook", () => {
     
     assert.equal(Number(tokenAccount.amount), amount / 2);
   });
-
-  // // Broken, "addExtraAccountsToInstruction" does not resolve WSol PDA correctly
-  // it("Transfer Hook with Extra Account Meta, using addExtraAccountsToInstruction", async () => {
-  //   // 1 tokens
-  //   const amount = 1 * 10 ** decimals;
-
-  //   const solTransferInstruction = SystemProgram.transfer({
-  //     fromPubkey: wallet.publicKey,
-  //     toPubkey: senderWSolTokenAccount,
-  //     lamports: amount,
-  //   });
-
-  //   // Approve delegate to transfer tokens
-  //   const approveInstruction = createApproveInstruction(
-  //     senderWSolTokenAccount,
-  //     delegatePDA,
-  //     wallet.publicKey,
-  //     amount,
-  //     [],
-  //     TOKEN_PROGRAM_ID
-  //   );
-
-  //   const syncWrappedSolInstruction = createSyncNativeInstruction(
-  //     senderWSolTokenAccount
-  //   );
-
-  //   const transferInstruction = createTransferCheckedInstruction(
-  //     sourceTokenAccount,
-  //     mint.publicKey,
-  //     destinationTokenAccount,
-  //     wallet.publicKey,
-  //     amount,
-  //     decimals,
-  //     [],
-  //     TOKEN_2022_PROGRAM_ID
-  //   );
-
-  //   // The `addExtraAccountsToInstruction` JS helper function resolving incorrectly
-  //   const instructionWithExtraAccounts = await addExtraAccountsToInstruction(
-  //     connection,
-  //     transferInstruction,
-  //     mint.publicKey,
-  //     "confirmed",
-  //     TOKEN_2022_PROGRAM_ID
-  //   );
-
-  //   instructionWithExtraAccounts.keys.forEach((key, index) => {
-  //     console.log(`Key ${index}: ${key.pubkey.toBase58()}`);
-  //   });
-
-  //   const transaction = new Transaction().add(
-  //     solTransferInstruction,
-  //     syncWrappedSolInstruction,
-  //     approveInstruction,
-  //     instructionWithExtraAccounts
-  //   );
-  //   const txSig = await sendAndConfirmTransaction(
-  //     connection,
-  //     transaction,
-  //     [wallet.payer],
-  //     { skipPreflight: true }
-  //   );
-  //   console.log("Transfer Signature:", txSig);
-  // });
 });

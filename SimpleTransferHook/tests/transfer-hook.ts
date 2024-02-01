@@ -17,10 +17,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
-  createTransferCheckedInstruction,
   getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-  addExtraAccountMetasForExecute,
   createTransferCheckedWithTransferHookInstruction
 } from "@solana/spl-token";
 
