@@ -81,7 +81,7 @@ pub mod transfer_hook {
         //    return err!(MyError::AmountTooBig);
         }
 
-        ctx.accounts.counter_account.counter += 1;
+        ctx.accounts.counter_account.counter.checked_add(1).unwrap();
 
         msg!("This token has been transfered {0} times", ctx.accounts.counter_account.counter);
        
@@ -124,11 +124,11 @@ pub struct InitializeExtraAccountMetaList<'info> {
     pub extra_account_meta_list: AccountInfo<'info>,
     pub mint: InterfaceAccount<'info, Mint>,
     #[account(
-        init,
+        init_if_needed,
         seeds = [b"counter"], 
         bump,
         payer = payer,
-        space = 9
+        space = 16
     )]
     pub counter_account: Account<'info, CounterAccount>,
     pub token_program: Interface<'info, TokenInterface>,
@@ -169,5 +169,5 @@ pub struct TransferHook<'info> {
 
 #[account]
 pub struct CounterAccount {
-    counter: u8,
+    counter: u64,
 }

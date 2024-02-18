@@ -1,6 +1,8 @@
+//@ts-check
 import { getKeypairFromFile } from "@solana-developers/helpers";
-import { TOKEN_2022_PROGRAM_ID, burn, createAccount, createMint, getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
+import { AccountLayout, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, burn, createAccount, createMint, getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { Connection, Keypair } from "@solana/web3.js";
+import { getAccount } from '@solana/spl-token';
 
 
 let connection = new Connection("http://127.0.0.1:8899", "confirmed");
@@ -51,6 +53,7 @@ const tokenAccount = await createAccount(
 
     console.log("assotiatedTokenAccount", assotiatedTokenAccount);
 
+
 const sig = await mintTo(
     connection,
     keyPair,
@@ -63,7 +66,21 @@ const sig = await mintTo(
     TOKEN_2022_PROGRAM_ID
 );
 
+const tokenAccountInfo = await connection.getAccountInfo(tokenAccount);
+const parsedTokenAccountInfo = await getAccount(connection, tokenAccount, undefined, TOKEN_2022_PROGRAM_ID);
+
+console.log("tokenAccountInfo", parsedTokenAccountInfo);
+ 
+
+let response = await connection.getTokenAccountsByOwner(keyPair.publicKey, {"mint": mintkeyPair.publicKey})
+    response.value.forEach((e) => {
+        console.log(`pubkey: ${e.pubkey.toBase58()}`);
+        const accountInfo = AccountLayout.decode(e.account.data);
+        console.log(`amount: ${accountInfo.amount}`);
+});
+
 console.log("sig", sig);
+
 
 var x = 5;
 var interval = 1000;

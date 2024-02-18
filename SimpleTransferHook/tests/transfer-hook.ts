@@ -97,8 +97,13 @@ describe("transfer-hook", () => {
     const txSig = await sendAndConfirmTransaction(
       provider.connection,
       transaction,
-      [wallet.payer, mint]
+      [wallet.payer, mint],
+      { skipPreflight: true, commitment: "finalized"}
     );
+
+    const txDetails = await program.provider.connection.getTransaction(txSig, { maxSupportedTransactionVersion: 0, commitment: 'confirmed'});
+    console.log(txDetails.meta.logMessages);
+
 
     console.log(`Transaction Signature: ${txSig}`);
   });
