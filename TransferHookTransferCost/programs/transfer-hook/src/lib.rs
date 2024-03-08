@@ -24,7 +24,6 @@ pub enum MyError {
 
 #[program]
 pub mod transfer_hook {
-
     use super::*;
 
     pub fn initialize_extra_account_meta_list(
@@ -122,17 +121,22 @@ pub mod transfer_hook {
     pub fn transfer_hook(ctx: Context<TransferHook>, amount: u64) -> Result<()> {
 
         if amount > 50 {
-            msg!("The amount is too big {0}", amount);
-        //    return err!(MyError::AmountTooBig);
+            //msg!("The amount is too big {0}", amount);
+            //return err!(MyError::AmountTooBig);
         }
 
         ctx.accounts.counter_account.counter += 1;
 
-        msg!("This token has been transfered {0} times", ctx.accounts.counter_account.counter);
+        msg!("This token has been transferred {0} times", ctx.accounts.counter_account.counter);
 
-       let signer_seeds: &[&[&[u8]]] = &[&[b"delegate", &[ctx.bumps.delegate]]];
+        // All accounts are non writable so you can not burn any of them for example here
+        msg!("Is writable mint {0}", ctx.accounts.mint.to_account_info().is_writable);
+        msg!("Is destination mint {0}", ctx.accounts.destination_token.to_account_info().is_writable);
+        msg!("Is source mint {0}", ctx.accounts.source_token.to_account_info().is_writable);
 
-        // transfer WSOL from sender to delegate token account using delegate PDA
+        let signer_seeds: &[&[&[u8]]] = &[&[b"delegate", &[ctx.bumps.delegate]]];
+
+        // Transfer WSOL from sender to delegate token account using delegate PDA
         transfer_checked(
             CpiContext::new(
                 ctx.accounts.token_program.to_account_info(),
@@ -167,7 +171,7 @@ pub mod transfer_hook {
                 // invoke custom transfer hook instruction on our program
                 __private::__global::transfer_hook(program_id, accounts, &amount_bytes)
             }
-            _ => return Err(ProgramError::InvalidInstructionData.into()),
+            _ => Err(ProgramError::InvalidInstructionData.into()),
         }
     }
 }
@@ -253,5 +257,5 @@ pub struct TransferHook<'info> {
 
 #[account]
 pub struct CounterAccount {
-    counter: u8,
+    counter: u8
 }
